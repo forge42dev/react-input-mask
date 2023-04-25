@@ -1,8 +1,8 @@
 # React Input Mask
 ![GitHub Repo stars](https://img.shields.io/github/stars/Code-Forge-Net/react-input-mask?style=social)
-<!-- ![npm](https://img.shields.io/npm/v/react-input-mask?style=plastic) -->
+![npm](https://img.shields.io/npm/v/@code-forge/react-input-mask?style=plastic)
 ![GitHub](https://img.shields.io/github/license/Code-Forge-Net/react-input-mask?style=plastic)
-<!-- ![npm](https://img.shields.io/npm/dy/react-input-mask?style=plastic) -->
+![npm](https://img.shields.io/npm/dy/@code-forge/react-input-mask?style=plastic)
 ![GitHub issues](https://img.shields.io/github/issues/Code-Forge-Net/react-input-mask?style=plastic)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Code-Forge-Net/react-input-mask?style=plastic)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Code-Forge-Net/react-input-mask?style=plastic)

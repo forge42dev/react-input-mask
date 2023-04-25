@@ -14,7 +14,7 @@
     "react-input-mask-hook"
   ],
   "private": false,
-  "version": "1.0.1",
+  "version": "1.0.3",
   "type": "module",
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
@@ -29,6 +29,7 @@
     "dist"
   ],
   "scripts": {
+    "prepublish": "npm run build",
     "dev": "vite --config ./vite.dev.config.ts",
     "build": "vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
