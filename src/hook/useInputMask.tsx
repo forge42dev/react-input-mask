@@ -1,13 +1,15 @@
-import { useRef, useLayoutEffect, useState } from "react";
+import { useState } from "react";
+import type { KeyboardEvent } from "react";
 import {
   convertMaskToPlaceholder,
   convertRawValueToMaskedValue,
   isValidInput,
+  triggerInputChange,
+  useRunAfterUpdate,
 } from "../utils";
 
 interface UseInputMaskProps {
-  mask: string;
-  onChange: (value: string) => void;
+  mask?: string;
   placeholderChar?: string;
   charRegex?: RegExp;
   numRegex?: RegExp;
@@ -16,43 +18,39 @@ interface UseInputMaskProps {
 export const LETTER_REGEX = /^[a-zA-Z]*$/;
 export const DIGIT_REGEX = /^[0-9]*$/;
 
-const useRunAfterUpdate = () => {
-  const afterPaintRef = useRef<() => void | undefined>();
-  useLayoutEffect(() => {
-    if (afterPaintRef.current) {
-      afterPaintRef.current();
-      afterPaintRef.current = undefined;
-    }
-  });
-  const runAfterUpdate = (fn: () => void) => {
-    afterPaintRef.current = fn;
-  };
-
-  return runAfterUpdate;
-};
-
 export function useInputMask({
   mask,
   placeholderChar = "_",
   type = "raw",
   charRegex = LETTER_REGEX,
   numRegex = DIGIT_REGEX,
-  onChange,
 }: UseInputMaskProps) {
   const maskRegex = /[^A9*]+/g;
-  const filteredMask = mask.replace(maskRegex, "");
+  const filteredMask = mask?.replace(maskRegex, "");
   const run = useRunAfterUpdate();
   const [rawValue, setRawValue] = useState("");
   const [maskValue, setMaskValue] = useState(
-    convertMaskToPlaceholder(mask, placeholderChar)
+    convertMaskToPlaceholder(mask ?? "", placeholderChar)
   );
+  if (!mask) {
+    return {};
+  }
+  // If rendering on the server, return the mask value
+  if (typeof document === "undefined") {
+    return { value: maskValue };
+  }
 
-  const setMaskValues = (raw: string, input: HTMLInputElement) => {
+  const setMaskValues = (
+    raw: string,
+    input: HTMLInputElement,
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
     setRawValue(raw);
     const maskValue = convertRawValueToMaskedValue(raw, mask, placeholderChar);
     setMaskValue(maskValue);
-    // Calls the provided onChange function with the new value
-    onChange(type === "raw" ? raw : maskValue);
+    const value = type === "raw" ? raw : maskValue;
+    // Calls react onChange event
+    triggerInputChange(event.target as HTMLInputElement, value);
     // sets the caret position to the next available position
     run(() => {
       const caretPosition = maskValue.indexOf(placeholderChar);
@@ -60,11 +58,11 @@ export function useInputMask({
     });
   };
 
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     const value = event.key;
     const input = event.target as HTMLInputElement;
     const currentMaskIndex = rawValue.length;
-    const currentMaskChar = filteredMask[currentMaskIndex];
+    const currentMaskChar = filteredMask![currentMaskIndex];
     if (value === "Tab" || value === "Enter") {
       return;
     }
@@ -73,7 +71,7 @@ export function useInputMask({
 
     if (value === "Backspace" && rawValue.length > 0) {
       const newValue = rawValue.slice(0, -1);
-      return setMaskValues(newValue, input);
+      return setMaskValues(newValue, input, event);
     }
 
     const isValid = isValidInput({
@@ -81,7 +79,7 @@ export function useInputMask({
       currentMaskChar,
       charRegex,
       numRegex,
-      filteredMask,
+      filteredMask: filteredMask!,
       rawValue,
     });
 
@@ -90,7 +88,7 @@ export function useInputMask({
     }
 
     const newValue = rawValue + value;
-    setMaskValues(newValue, input);
+    setMaskValues(newValue, input, event);
   };
 
   const inputProps = {

@@ -95,3 +95,26 @@ export const isValidInput = ({
   }
   return false;
 };
+
+export const triggerInputChange = (
+  node: HTMLInputElement,
+  inputValue: string
+) => {
+  const descriptor = Object.getOwnPropertyDescriptor(node, "value");
+
+  node.value = `${inputValue}#`;
+  if (descriptor && descriptor.configurable) {
+    // @ts-ignore
+    delete node.value;
+  }
+  node.value = inputValue;
+
+  const e = document.createEvent("HTMLEvents");
+  e.initEvent("change", true, false);
+  node.dispatchEvent(e);
+
+  if (descriptor) {
+    Object.defineProperty(node, "value", descriptor);
+  }
+};
+export * from "./useRunAfterUpdate";

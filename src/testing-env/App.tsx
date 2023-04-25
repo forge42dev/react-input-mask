@@ -1,25 +1,20 @@
 import React from "react";
 import { useInputMask } from "../hook/useInputMask";
+import { useForm } from "react-hook-form";
 
 const App = () => {
+  const { register, watch } = useForm();
+  const regArgs = register("test");
   const inputProps = useInputMask({
-    mask: "55aa**-****-****-****",
-    onChange: (value) => {
-      console.log(value);
-    },
+    mask: "9999 9999 9999 9999",
     placeholderChar: "_",
     type: "mask",
   });
-
+  const test = watch("test");
+  console.log(test);
   return (
     <div>
-      <input
-        {...inputProps}
-        onChange={(e) => {
-          console.log(e.target.value);
-        }}
-        type="text"
-      />
+      <input {...regArgs} {...inputProps} type="text" />
     </div>
   );
 };
