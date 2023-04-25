@@ -1,8 +1,11 @@
-import { useRef, useLayoutEffect } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
+
+const canUseDOM = typeof window !== "undefined";
+const useIsomorphicLayoutEffect = canUseDOM ? useLayoutEffect : useEffect;
 
 export const useRunAfterUpdate = () => {
   const afterPaintRef = useRef<() => void | undefined>();
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (afterPaintRef.current) {
       afterPaintRef.current();
       afterPaintRef.current = undefined;
