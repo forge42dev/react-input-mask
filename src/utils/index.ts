@@ -96,6 +96,10 @@ export const isValidInput = ({
   return false;
 };
 
+export const isWholeInputSelected = (input: HTMLInputElement, mask: string) => {
+  return input.selectionStart === 0 && input.selectionEnd === mask.length;
+};
+
 export const triggerInputChange = (
   node: HTMLInputElement,
   inputValue: string

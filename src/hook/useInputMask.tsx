@@ -4,6 +4,7 @@ import {
   convertMaskToPlaceholder,
   convertRawValueToMaskedValue,
   isValidInput,
+  isWholeInputSelected,
   triggerInputChange,
   useRunAfterUpdate,
 } from "../utils";
@@ -63,6 +64,12 @@ export function useInputMask({
     const input = event.target as HTMLInputElement;
     const currentMaskIndex = rawValue.length;
     const currentMaskChar = filteredMask![currentMaskIndex];
+    // Select whole input if user presses Ctrl+A
+    if (event.ctrlKey && event.key.toLowerCase() === "a") {
+      event.preventDefault();
+      input.setSelectionRange(0, mask.length);
+      return;
+    }
     if (value === "Tab" || value === "Enter") {
       return;
     }
@@ -70,7 +77,8 @@ export function useInputMask({
     event.preventDefault();
 
     if (value === "Backspace" && rawValue.length > 0) {
-      const newValue = rawValue.slice(0, -1);
+      const isWholeSelected = isWholeInputSelected(input, mask);
+      const newValue = isWholeSelected ? "" : rawValue.slice(0, -1);
       return setMaskValues(newValue, input, event);
     }
 

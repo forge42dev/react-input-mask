@@ -2,6 +2,7 @@
   "name": "@code-forge/react-input-mask",
   "description": "React input mask hook",
   "author": "Alem Tuzlak",
+  "version": "1.0.4",
   "license": "MIT",
   "keywords": [
     "react",
@@ -14,7 +15,6 @@
     "react-input-mask-hook"
   ],
   "private": false,
-  "version": "1.0.3",
   "type": "module",
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",

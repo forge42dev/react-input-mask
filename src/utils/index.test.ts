@@ -7,6 +7,7 @@ import {
   convertMaskToPlaceholder,
   convertRawValueToMaskedValue,
   isValidInput,
+  isWholeInputSelected,
 } from "./";
 
 describe("isLetter", () => {
@@ -256,5 +257,43 @@ describe("isValidInput()", () => {
       numRegex,
     });
     expect(result).toBe(false);
+  });
+});
+
+describe("isWholeInputSelected", () => {
+  const mask = "(___) ___-____";
+
+  it("returns true when whole input is selected", () => {
+    const input = document.createElement("input");
+    input.value = "(123) 4567-8911";
+    input.selectionStart = 0;
+    input.selectionEnd = mask.length;
+
+    expect(isWholeInputSelected(input, mask)).toBe(true);
+  });
+
+  it("returns false when only part of input is selected", () => {
+    const input = document.createElement("input");
+    input.value = "1234567890";
+    input.selectionStart = 0;
+    input.selectionEnd = 5;
+
+    expect(isWholeInputSelected(input, mask)).toBe(false);
+  });
+
+  it("returns false when no input is selected", () => {
+    const input = document.createElement("input");
+    input.value = "1234567890";
+    input.selectionStart = input.selectionEnd = 5;
+
+    expect(isWholeInputSelected(input, mask)).toBe(false);
+  });
+
+  it("returns false when input is empty", () => {
+    const input = document.createElement("input");
+    input.value = "";
+    input.selectionStart = input.selectionEnd = 0;
+
+    expect(isWholeInputSelected(input, mask)).toBe(false);
   });
 });
