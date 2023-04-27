@@ -4,25 +4,33 @@ export const isLetter = (char: string, regex = LETTER_REGEX) =>
   regex.test(char);
 export const isDigit = (char: string, regex = DIGIT_REGEX) => regex.test(char);
 export const isWildcard = (char: string) => char === "*";
+export const isMaskChar = (char: string) =>
+  char === "A" || char === "9" || char === "*";
 
 export const getMaskedValueFromRaw = (mask: string, rawValue: string) => {
-  let output = mask;
   let reachedIndex = 0;
-  mask.split("").forEach((char) => {
-    if (!rawValue[reachedIndex]) return;
-    if (char === "*") {
-      output = output.replace(char, rawValue[reachedIndex]);
-      reachedIndex += 1;
-    }
-    if (char === "A" && isLetter(rawValue[reachedIndex])) {
-      output = output.replace(char, rawValue[reachedIndex]);
-      reachedIndex += 1;
-    }
-    if (char === "9" && isDigit(rawValue[reachedIndex])) {
-      output = output.replace(char, rawValue[reachedIndex]);
-      reachedIndex += 1;
-    }
-  });
+  const output = mask
+    .split("")
+    .map((char) => {
+      if (!isMaskChar(char)) return char;
+      const returnValue = rawValue[reachedIndex];
+      if (!returnValue) return char;
+
+      if (char === "*") {
+        reachedIndex += 1;
+        return returnValue;
+      }
+      if (char === "A" && isLetter(rawValue[reachedIndex])) {
+        reachedIndex += 1;
+        return returnValue;
+      }
+      if (char === "9" && isDigit(rawValue[reachedIndex])) {
+        reachedIndex += 1;
+        return returnValue;
+      }
+      return char;
+    })
+    .join("");
 
   return output;
 };
@@ -41,12 +49,22 @@ export const convertMaskToPlaceholder = (
       .replaceAll("9", placeholderChar)
   );
 };
-
-const getNonMaskedCharCount = (mask: string, lastCharIndex: number) => {
-  return mask
-    .substring(0, lastCharIndex)
-    .split("")
-    .filter((char) => char !== "*" && char !== "9" && char !== "A").length;
+/**
+ * Goes through the mask until it reaches the raw value length and returns the count of non-masked characters
+ * @param mask Mask string
+ * @param rawLength Length of the raw value
+ * @returns Returns the count of non-masked characters
+ */
+export const getNonMaskedCharCount = (mask: string, rawLength: number) => {
+  let reachedIndex = 0;
+  return mask.split("").filter((char) => {
+    if (reachedIndex >= rawLength) return false;
+    if (isMaskChar(char)) {
+      reachedIndex += 1;
+      return false;
+    }
+    return true;
+  }).length;
 };
 
 export const convertRawValueToMaskedValue = (
@@ -62,7 +80,14 @@ export const convertRawValueToMaskedValue = (
     rawValue.length + extraChars
   );
 };
-
+interface IsValidInputProps {
+  value: string;
+  currentMaskChar: string;
+  filteredMask: string;
+  rawValue: string;
+  charRegex: RegExp;
+  numRegex: RegExp;
+}
 export const isValidInput = ({
   filteredMask,
   value,
@@ -70,20 +95,23 @@ export const isValidInput = ({
   currentMaskChar,
   charRegex,
   numRegex,
-}: {
-  value: string;
-  currentMaskChar: string;
-  filteredMask: string;
-  rawValue: string;
-  charRegex: RegExp;
-  numRegex: RegExp;
-}) => {
+}: IsValidInputProps) => {
   if (value.length > 1) {
     return false;
   }
   if (filteredMask.length === rawValue.length) {
     return false;
   }
+
+  return maskAndValueMatch(value, currentMaskChar, charRegex, numRegex);
+};
+
+export const maskAndValueMatch = (
+  value: string,
+  currentMaskChar: string,
+  charRegex: RegExp,
+  numRegex: RegExp
+) => {
   if (isLetter(value, charRegex) && isLetter(currentMaskChar, charRegex)) {
     return true;
   }
@@ -104,21 +132,95 @@ export const triggerInputChange = (
   node: HTMLInputElement,
   inputValue: string
 ) => {
-  const descriptor = Object.getOwnPropertyDescriptor(node, "value");
-
-  node.value = `${inputValue}#`;
-  if (descriptor && descriptor.configurable) {
-    // @ts-ignore
-    delete node.value;
-  }
   node.value = inputValue;
 
   const e = document.createEvent("HTMLEvents");
   e.initEvent("change", true, false);
   node.dispatchEvent(e);
-
-  if (descriptor) {
-    Object.defineProperty(node, "value", descriptor);
-  }
 };
 export * from "./useRunAfterUpdate";
+
+export const generateRawValue = (
+  mask = "",
+  value = "",
+  charRegex: RegExp,
+  numRegex: RegExp,
+  placeholderChar: string
+) => {
+  const defaultReturn = {
+    maskValue: convertMaskToPlaceholder(mask, placeholderChar),
+    rawValue: "",
+  };
+  if (!mask || !value) {
+    return defaultReturn;
+  }
+  const filteredMask = mask.replace(/[^A9*]+/g, "");
+  const chars = value.split("");
+  const allValid = chars.every((char, index) =>
+    isValidInput({
+      value: char,
+      currentMaskChar: filteredMask[index],
+      charRegex,
+      numRegex,
+      filteredMask,
+      rawValue: value.slice(0, index),
+    })
+  );
+
+  if (allValid) {
+    return {
+      maskValue: convertRawValueToMaskedValue(value, mask, placeholderChar),
+      rawValue: value,
+    };
+  }
+
+  return defaultReturn;
+};
+
+export const generateMaskValue = (
+  mask: string,
+  value: string,
+  charRegex: RegExp,
+  numRegex: RegExp,
+  placeholderChar: string
+) => {
+  const defaultReturn = {
+    maskValue: convertMaskToPlaceholder(mask, placeholderChar),
+    rawValue: "",
+  };
+  if (value.length != mask.length) {
+    return defaultReturn;
+  }
+  const chars = mask.split("");
+  const valid = chars.every((char, index) => {
+    if (!isMaskChar(char)) {
+      return char === value[index];
+    }
+    return maskAndValueMatch(value[index], char, charRegex, numRegex);
+  });
+  if (valid) {
+    const rawValue = chars
+      .map((char, index) => {
+        if (isMaskChar(char)) {
+          return value[index];
+        }
+        return "";
+      })
+      .join("");
+    return { maskValue: value, rawValue };
+  }
+  return defaultReturn;
+};
+export const generateDefaultValues = (
+  mask = "",
+  value = "",
+  type: "raw" | "mask",
+  charRegex: RegExp,
+  numRegex: RegExp,
+  placeholderChar: string
+) => {
+  if (type === "mask") {
+    return generateMaskValue(mask, value, charRegex, numRegex, placeholderChar);
+  }
+  return generateRawValue(mask, value, charRegex, numRegex, placeholderChar);
+};

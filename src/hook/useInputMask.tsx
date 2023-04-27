@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { KeyboardEvent } from "react";
 import {
-  convertMaskToPlaceholder,
   convertRawValueToMaskedValue,
+  generateDefaultValues,
   isValidInput,
   isWholeInputSelected,
   triggerInputChange,
@@ -14,6 +14,7 @@ interface UseInputMaskProps {
   placeholderChar?: string;
   charRegex?: RegExp;
   numRegex?: RegExp;
+  value?: string;
   type?: "raw" | "mask";
 }
 export const LETTER_REGEX = /^[a-zA-Z]*$/;
@@ -23,16 +24,29 @@ export function useInputMask({
   mask,
   placeholderChar = "_",
   type = "raw",
+  value,
   charRegex = LETTER_REGEX,
   numRegex = DIGIT_REGEX,
 }: UseInputMaskProps) {
   const maskRegex = /[^A9*]+/g;
   const filteredMask = mask?.replace(maskRegex, "");
   const run = useRunAfterUpdate();
-  const [rawValue, setRawValue] = useState("");
-  const [maskValue, setMaskValue] = useState(
-    convertMaskToPlaceholder(mask ?? "", placeholderChar)
+  const { maskValue: defaultMask, rawValue: defaultRaw } = useMemo(
+    () =>
+      generateDefaultValues(
+        mask,
+        value,
+        type,
+        charRegex,
+        numRegex,
+        placeholderChar
+      ),
+    [mask, value, type, charRegex, numRegex, placeholderChar]
   );
+
+  const [rawValue, setRawValue] = useState(defaultRaw);
+  const [maskValue, setMaskValue] = useState(defaultMask);
+
   if (!mask) {
     return {};
   }
@@ -48,6 +62,7 @@ export function useInputMask({
   ) => {
     setRawValue(raw);
     const maskValue = convertRawValueToMaskedValue(raw, mask, placeholderChar);
+
     setMaskValue(maskValue);
     const value = type === "raw" ? raw : maskValue;
     // Calls react onChange event
@@ -98,7 +113,6 @@ export function useInputMask({
     const newValue = rawValue + value;
     setMaskValues(newValue, input, event);
   };
-
   const inputProps = {
     value: maskValue,
     onKeyDown,

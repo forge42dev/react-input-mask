@@ -8,6 +8,13 @@ import {
   convertRawValueToMaskedValue,
   isValidInput,
   isWholeInputSelected,
+  getNonMaskedCharCount,
+  generateMaskValue,
+  maskAndValueMatch,
+  generateRawValue,
+  isMaskChar,
+  generateDefaultValues,
+  triggerInputChange,
 } from "./";
 
 describe("isLetter", () => {
@@ -48,6 +55,35 @@ describe("isWildcard", () => {
     expect(isWildcard("a")).toBe(false);
     expect(isWildcard("1")).toBe(false);
     expect(isWildcard(" ")).toBe(false);
+  });
+});
+
+describe("maskAndValueMatch", () => {
+  const charRegex = LETTER_REGEX;
+  const numRegex = DIGIT_REGEX;
+
+  test("returns true for matching letter and letter mask char", () => {
+    expect(maskAndValueMatch("a", "A", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("z", "A", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("B", "A", charRegex, numRegex)).toBe(true);
+  });
+
+  test("returns true for matching digit and digit mask char", () => {
+    expect(maskAndValueMatch("1", "9", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("5", "9", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("0", "9", charRegex, numRegex)).toBe(true);
+  });
+
+  test("returns true for wildcard mask char", () => {
+    expect(maskAndValueMatch("a", "*", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("5", "*", charRegex, numRegex)).toBe(true);
+    expect(maskAndValueMatch("!", "*", charRegex, numRegex)).toBe(true);
+  });
+
+  test("returns false for non-matching value and mask char", () => {
+    expect(maskAndValueMatch("a", "9", charRegex, numRegex)).toBe(false);
+    expect(maskAndValueMatch("1", "A", charRegex, numRegex)).toBe(false);
+    expect(maskAndValueMatch("&", "9", charRegex, numRegex)).toBe(false);
   });
 });
 
@@ -171,7 +207,7 @@ describe("convertRawValueToMaskedValue", () => {
   });
 });
 
-describe("isValidInput()", () => {
+describe("isValidInput", () => {
   const charRegex = LETTER_REGEX;
   const numRegex = DIGIT_REGEX;
 
@@ -295,5 +331,355 @@ describe("isWholeInputSelected", () => {
     input.selectionStart = input.selectionEnd = 0;
 
     expect(isWholeInputSelected(input, mask)).toBe(false);
+  });
+});
+
+describe("getNonMaskedCharCount", () => {
+  it("returns 0 for empty mask and any raw length", () => {
+    expect(getNonMaskedCharCount("", 0)).toBe(0);
+    expect(getNonMaskedCharCount("", 1)).toBe(0);
+    expect(getNonMaskedCharCount("", 10)).toBe(0);
+  });
+
+  it("returns 0 for mask containing non mask characters that haven't been reached", () => {
+    expect(getNonMaskedCharCount("***-***-****", 0)).toBe(0);
+    expect(getNonMaskedCharCount("***-***-****", 1)).toBe(0);
+    expect(getNonMaskedCharCount("***-***-****", 2)).toBe(0);
+    expect(getNonMaskedCharCount("***-***-****", 3)).toBe(0);
+  });
+
+  it("returns proper char count when the placeholders have been reached", () => {
+    expect(getNonMaskedCharCount("***-***-****", 3)).toBe(0);
+    expect(getNonMaskedCharCount("***-***-****", 4)).toBe(1);
+    expect(getNonMaskedCharCount("***-***-****", 10)).toBe(2);
+    expect(getNonMaskedCharCount("9999 9999 9999 9999", 10)).toBe(2);
+    expect(getNonMaskedCharCount("9999 9999 9999 9999", 12)).toBe(2);
+    expect(getNonMaskedCharCount("9999 9999 9999 9999", 13)).toBe(3);
+  });
+
+  it("returns 0 when there are no placeholder characters no matter of position reached", () => {
+    expect(getNonMaskedCharCount("9A***9", 0)).toBe(0);
+    expect(getNonMaskedCharCount("9A***9", 1)).toBe(0);
+    expect(getNonMaskedCharCount("9A***9", 10)).toBe(0);
+  });
+});
+
+describe("generateMaskValue", () => {
+  const charRegex = LETTER_REGEX;
+  const numRegex = DIGIT_REGEX;
+  const placeholderChar = "_";
+
+  it("returns default values when value length is less than mask length", () => {
+    const result = generateMaskValue(
+      "A9A-9A9",
+      "abc",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  it("returns default values when value length is greater than mask length", () => {
+    const result = generateMaskValue(
+      "A9A-9A9",
+      "abc12345",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  it("returns mask value and raw value when mask and value match", () => {
+    const result = generateMaskValue(
+      "AAA-999",
+      "abc-123",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "abc-123",
+      rawValue: "abc123",
+    });
+  });
+
+  it("returns mask value with placeholder when mask and value don't match", () => {
+    const result = generateMaskValue(
+      "A9A-9A9",
+      "a!b@c#d$e",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  it("returns mask value with placeholder containing special non mask characters properly", () => {
+    const result = generateMaskValue(
+      "AAA-BBBB",
+      "123abc45",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "___-BBBB",
+      rawValue: "",
+    });
+  });
+
+  it("returns mask value with placeholder when value contains non-alphanumeric characters for an alphanumeric mask character", () => {
+    const result = generateMaskValue(
+      "A9A-9A9",
+      "a!b@c#d$e",
+      charRegex,
+      numRegex,
+      placeholderChar
+    );
+    expect(result).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+});
+
+describe("generateRawValue", () => {
+  const charRegex = LETTER_REGEX;
+  const numRegex = DIGIT_REGEX;
+  const placeholderChar = "_";
+
+  test("returns default values if mask or value are empty", () => {
+    expect(
+      generateRawValue("", "", charRegex, numRegex, placeholderChar)
+    ).toEqual({
+      maskValue: "",
+      rawValue: "",
+    });
+    expect(
+      generateRawValue("A9A-9A9", "", charRegex, numRegex, placeholderChar)
+    ).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  test("returns default values if mask contains no mask characters", () => {
+    expect(
+      generateRawValue("abc", "abc", charRegex, numRegex, placeholderChar)
+    ).toEqual({
+      maskValue: "abc",
+      rawValue: "",
+    });
+  });
+
+  test("returns default values if value length doesn't match mask length", () => {
+    expect(
+      generateRawValue("A9A-9A9", "123", charRegex, numRegex, placeholderChar)
+    ).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  test("returns default values if input contains invalid characters", () => {
+    expect(
+      generateRawValue("A9A-9A9", "abcde", charRegex, numRegex, placeholderChar)
+    ).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+    expect(
+      generateRawValue(
+        "A9A-9A9",
+        "12#-345",
+        charRegex,
+        numRegex,
+        placeholderChar
+      )
+    ).toEqual({
+      maskValue: "___-___",
+      rawValue: "",
+    });
+  });
+
+  test("returns masked and raw values when input is valid", () => {
+    expect(
+      generateRawValue(
+        "A9A-9A9",
+        "A1B2C3",
+        charRegex,
+        numRegex,
+        placeholderChar
+      )
+    ).toEqual({
+      maskValue: "A1B-2C3",
+      rawValue: "A1B2C3",
+    });
+    expect(
+      generateRawValue(
+        "A9A-9A9",
+        "a1b2c3",
+        charRegex,
+        numRegex,
+        placeholderChar
+      )
+    ).toEqual({
+      maskValue: "a1b-2c3",
+      rawValue: "a1b2c3",
+    });
+  });
+});
+
+describe("isMaskChar", () => {
+  test("returns true when the character is 'A'", () => {
+    expect(isMaskChar("A")).toBe(true);
+  });
+
+  test("returns true when the character is '9'", () => {
+    expect(isMaskChar("9")).toBe(true);
+  });
+
+  test("returns true when the character is '*'", () => {
+    expect(isMaskChar("*")).toBe(true);
+  });
+
+  test("returns false when the character is not 'A', '9', or '*'", () => {
+    expect(isMaskChar("a")).toBe(false);
+    expect(isMaskChar("1")).toBe(false);
+    expect(isMaskChar("#")).toBe(false);
+  });
+});
+
+describe("generateDefaultValues", () => {
+  it("should return default values when mask and value are empty", () => {
+    const result = generateDefaultValues("", "", "raw", /[A-Za-z]/, /\d/, "*");
+    expect(result).toEqual({
+      maskValue: "",
+      rawValue: "",
+    });
+  });
+
+  it("should generate mask value and raw value for raw input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "abc1234",
+      "raw",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "abc-1234",
+      rawValue: "abc1234",
+    });
+  });
+
+  it("should generate mask value and raw value for mask input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "abc-1234",
+      "mask",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "abc-1234",
+      rawValue: "abc1234",
+    });
+  });
+
+  it("should return partial values when mask and value have different lengths for raw input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "abc",
+      "raw",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "abc-****",
+      rawValue: "abc",
+    });
+  });
+
+  it("should return default values when mask and value have different lengths for mask input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "abc-12",
+      "mask",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "***-****",
+      rawValue: "",
+    });
+  });
+
+  it("should return default values when input is invalid for raw input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "123-abc",
+      "raw",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "***-****",
+      rawValue: "",
+    });
+  });
+
+  it("should return default values when input is invalid for mask input", () => {
+    const result = generateDefaultValues(
+      "AAA-9999",
+      "123abc",
+      "mask",
+      /[A-Za-z]/,
+      /\d/,
+      "*"
+    );
+    expect(result).toEqual({
+      maskValue: "***-****",
+      rawValue: "",
+    });
+  });
+});
+
+describe("triggerInputChange", () => {
+  it("should trigger a change event on the input element", () => {
+    const input = document.createElement("input");
+    const inputValue = "test";
+    vi.spyOn(input, "dispatchEvent");
+    triggerInputChange(input, inputValue);
+    expect(input.value).toBe(inputValue);
+    expect(input.dispatchEvent).toHaveBeenCalled();
+    expect(input.dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "change",
+      })
+    );
+  });
+
+  it("should properly set the value of the input element", () => {
+    const input = document.createElement("input");
+    const inputValue = "test";
+    triggerInputChange(input, inputValue);
+    expect(input.value).toBe(inputValue);
   });
 });

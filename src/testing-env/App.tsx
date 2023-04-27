@@ -8,7 +8,8 @@ const App = () => {
   const inputProps = useInputMask({
     mask: "9999 9999 9999 9999",
     placeholderChar: "_",
-    type: "mask",
+    type: "raw",
+    value: "9999999999999999",
   });
   const test = watch("test");
   console.log(test);
