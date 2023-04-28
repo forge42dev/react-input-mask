@@ -18,7 +18,7 @@ React Input Mask is a lightweight library that provides a simple API for applyin
 The design philosophy behind React Input Mask is to provide a simple API that is easy to use and understand via a hook instead of
 a component.
 
-It is also designed to be used with Remix.run and other server-side rendering frameworks.
+It is also designed to be used with Next.js and Remix.run and other server-side rendering frameworks.
 
 ## Installation
 React Input Mask can be installed via npm or yarn:
@@ -67,7 +67,7 @@ You can customize the mask to fit your needs by using a variety of special chara
 | charRegex | RegExp | A regular expression that represents the characters that are allowed to be entered into the input field. | /^[a-zA-Z]*$/|
 | numRegex | RegExp | A regular expression that represents the numbers that are allowed to be entered into the input field. | /^[0-9]*$/ |
 | type | "raw" or "mask" | The type of value to return from the hook. If set to "raw", the hook will return the raw value of the input field (eg. mask 999-999-99 with 111-111-11 will output 11111111). If set to "mask", the hook will return the masked value of the input field. (eg. mask 999-999-99 with 111-111-11 will output 111-111-11) | "raw" |
-
+| value | string | The initial value of the input field. (The hook expects to be given a value created by itself, if you provide an invalid value it will try to fill as much of the mask as it can but relies on you to pass it a positive value, otherwise it will default to its default values) | undefined |
 
 ## Examples
 ### Phone Number

@@ -1,12 +1,17 @@
 import React from "react";
-import {
-  act,
-  fireEvent,
-  getByTestId,
-  render,
-  renderHook,
-} from "@testing-library/react";
+import { act, fireEvent, render, renderHook } from "@testing-library/react";
 import { useInputMask } from "./useInputMask";
+
+const renderComponent = (
+  props: Parameters<typeof useInputMask>[0],
+  onChange: () => void = () => {}
+) => {
+  const Component = () => {
+    const inputProps = useInputMask(props);
+    return <input data-testid="input" {...inputProps} onChange={onChange} />;
+  };
+  return render(<Component />);
+};
 
 describe("useInputMask", () => {
   it("renders correctly", () => {
@@ -15,11 +20,8 @@ describe("useInputMask", () => {
   });
 
   it("updates letter value on input when valid", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "AAA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "AAA-999", type: "raw" });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -28,11 +30,8 @@ describe("useInputMask", () => {
     expect(input.getAttribute("value")).toBe("a__-___");
   });
   it("updates letter value on input when valid and is A", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "AAA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "AAA-999", type: "raw" });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -42,11 +41,8 @@ describe("useInputMask", () => {
   });
 
   it("nothing happens when letter is next and number entered", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "AAA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "AAA-999", type: "raw" });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -56,11 +52,8 @@ describe("useInputMask", () => {
   });
 
   it("nothing happens when letter is next and special char entered", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "AAA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "AAA-999", type: "raw" });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -70,11 +63,8 @@ describe("useInputMask", () => {
   });
 
   it("when number entered and number is next it updates value", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "9AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "9AA-999", type: "raw" });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -84,11 +74,7 @@ describe("useInputMask", () => {
   });
 
   it("when letter entered and number is next it does not update the value", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "9AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "9AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -98,11 +84,7 @@ describe("useInputMask", () => {
   });
 
   it("when special char entered and number is next it does not update the value", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "9AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "9AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -112,11 +94,7 @@ describe("useInputMask", () => {
   });
 
   it("when special char entered and wildcard is next value updated", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "*AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "*AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -126,11 +104,7 @@ describe("useInputMask", () => {
   });
 
   it("when letter entered and wildcard is next value updated", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "*AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "*AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -139,11 +113,7 @@ describe("useInputMask", () => {
     expect(input.getAttribute("value")).toBe("A__-___");
   });
   it("when number entered and wildcard is next value updated", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "*AA-999", type: "raw" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "*AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -153,11 +123,7 @@ describe("useInputMask", () => {
   });
 
   it("when backspace is clicked it deletes a character", () => {
-    const Component = () => {
-      const props = useInputMask({ mask: "*AA-999", type: "raw", value: "2" });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({ mask: "*AA-999", type: "raw" });
     const input = getByTestId("input");
 
     act(() => {
@@ -166,16 +132,69 @@ describe("useInputMask", () => {
     expect(input.getAttribute("value")).toBe("___-___");
   });
 
-  it("when CTRL + A is clicked then backspace everything is deleted", () => {
-    const Component = () => {
-      const props = useInputMask({
-        mask: "*AA-999",
-        type: "raw",
-        value: "2AA123",
+  it("deleting over non mask values works correctly", () => {
+    const { getByTestId } = renderComponent({
+      mask: "9999 9999 9999 9999",
+      type: "raw",
+      value: "9999999999999999",
+    });
+    for (let i = 0; i < 9; i++) {
+      act(() => {
+        fireEvent.keyDown(getByTestId("input"), { key: "Backspace" });
       });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    }
+    expect(getByTestId("input").getAttribute("value")).toBe(
+      "9999 999_ ____ ____"
+    );
+  });
+
+  it("entering values when mask complete does not work", () => {
+    const { getByTestId } = renderComponent({
+      mask: "9999 9999 9999 9999",
+      type: "raw",
+      value: "9999999999999999",
+    });
+    act(() => {
+      fireEvent.keyDown(getByTestId("input"), { key: "1" });
+    });
+    expect(getByTestId("input").getAttribute("value")).toBe(
+      "9999 9999 9999 9999"
+    );
+  });
+
+  it("entering values when mask complete and it is a special key with multiple letters doesn't work", () => {
+    const { getByTestId } = renderComponent({
+      mask: "9999 9999 9999 9999",
+      type: "raw",
+      value: "9999999999999999",
+    });
+    act(() => {
+      fireEvent.keyDown(getByTestId("input"), { key: "Capital" });
+    });
+    expect(getByTestId("input").getAttribute("value")).toBe(
+      "9999 9999 9999 9999"
+    );
+  });
+
+  it("entering values with multiple characters does not work", () => {
+    const { getByTestId } = renderComponent({
+      mask: "AAAAAAAAAAAAA",
+      type: "raw",
+      value: "",
+    });
+    act(() => {
+      fireEvent.keyDown(getByTestId("input"), { key: "Capital" });
+    });
+    expect(getByTestId("input").getAttribute("value")).toBe("_____________");
+  });
+
+  it("when CTRL + A is clicked then backspace everything is deleted", () => {
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "raw",
+      value: "2AA123",
+    });
+
     const input = getByTestId("input");
 
     act(() => {
@@ -185,16 +204,56 @@ describe("useInputMask", () => {
     expect(input.getAttribute("value")).toBe("___-___");
   });
 
+  it("when a full valid mask is provided in raw mode it is displayed and saved correctly", () => {
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "raw",
+      value: "2AA123",
+    });
+
+    const input = getByTestId("input");
+    expect(input.getAttribute("value")).toBe("2AA-123");
+  });
+
+  it("when a partial valid mask is provided in raw mode it is displayed and saved correctly", () => {
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "raw",
+      value: "2AA",
+    });
+
+    const input = getByTestId("input");
+    expect(input.getAttribute("value")).toBe("2AA-___");
+  });
+
+  it("when a full valid mask is provided in mask mode it is displayed and saved correctly", () => {
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "mask",
+      value: "2AA-123",
+    });
+
+    const input = getByTestId("input");
+    expect(input.getAttribute("value")).toBe("2AA-123");
+  });
+  /* 
+  it("when a partial valid mask is provided in mask mode it is displayed and saved correctly", () => {
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "mask",
+      value: "2AA-2",
+    });
+
+    const input = getByTestId("input");
+    expect(input.getAttribute("value")).toBe("2AA-2__");
+  }); */
+
   it("when you Tab out the element loses focus", () => {
-    const Component = () => {
-      const props = useInputMask({
-        mask: "*AA-999",
-        type: "raw",
-        value: "2AA123",
-      });
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({
+      mask: "*AA-999",
+      type: "raw",
+      value: "2AA123",
+    });
     const input = getByTestId("input");
 
     act(() => {
@@ -204,11 +263,10 @@ describe("useInputMask", () => {
   });
 
   it("when mask not provided value is not set", () => {
-    const Component = () => {
-      const props = useInputMask({});
-      return <input data-testid="input" {...props} />;
-    };
-    const { getByTestId } = render(<Component />);
+    const { getByTestId } = renderComponent({
+      type: "raw",
+      value: "2AA123",
+    });
     const input = getByTestId("input");
     expect(input.getAttribute("value")).toBe(null);
   });
