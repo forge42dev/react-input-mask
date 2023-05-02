@@ -37,9 +37,9 @@ import React from 'react';
 import { useInputMask } from 'react-input-mask';
 
 const MyComponent = () => {
-  const inputProps = useInputMask({ mask: '+(999) 999-9999' });
+  const { getInputProps } = useInputMask({ mask: 'One does not simply walk into AAAAAA' });
   return (
-    <input name="phone" {...inputProps} onChange={e => {
+    <input name="phone" {...getInputProps()} onChange={e => {
       // Your onChange handler gets the output of the hook (won't trigger if the input is invalid)
       console.log(e.target.value);
     }} />
@@ -70,15 +70,16 @@ You can customize the mask to fit your needs by using a variety of special chara
 | value | string | The initial value of the input field. (The hook expects to be given a value created by itself, if you provide an invalid value it will try to fill as much of the mask as it can but relies on you to pass it a positive value, otherwise it will default to its default values) | undefined |
 
 ## Examples
+
 ### Phone Number
 ```jsx
 import React from 'react';
 import { useInputMask } from 'react-input-mask';
 
 const MyComponent = () => {
-  const inputProps = useInputMask({ mask: '+(999) 999-9999' });
+  const { getInputProps } = useInputMask({ mask: '+(999) 999-9999' });
   return (
-    <input name="phone" {...inputProps} />
+    <input name="phone" {...getInputProps()} />
   );
 };
 ```
@@ -89,9 +90,9 @@ import React from 'react';
 import { useInputMask } from 'react-input-mask';
 
 const MyComponent = () => {
-  const inputProps = useInputMask({ mask: '999-99-9999' });
+  const { getInputProps } = useInputMask({ mask: '999-99-9999' });
   return (
-    <input name="ssn" {...inputProps} />
+    <input name="ssn" {...getInputProps()} />
   );
 };
 ```
@@ -102,9 +103,26 @@ import React from 'react';
 import { useInputMask } from 'react-input-mask';
 
 const MyComponent = () => {
-  const inputProps = useInputMask({ mask: '9999 9999 9999 9999' });
+  const { getInputProps } = useInputMask({ mask: '9999 9999 9999 9999' });
   return (
-    <input name="cc" {...inputProps} />
+    <input name="cc" {...getInputProps()} />
+  );
+};
+```
+
+### Handle keyDown before the mask
+```jsx
+import React from 'react';
+import { useInputMask } from 'react-input-mask';
+
+const MyComponent = () => {
+  const { getInputProps } = useInputMask({ mask: '9999 9999 9999 9999' });
+  const maskProps = getInputProps();
+  return (
+    <input name="cc" onKeyDown={e => { 
+      // do something
+      maskProps.onKeyDown(e);
+    }} value={maskProps.value} />
   );
 };
 ```
@@ -118,10 +136,10 @@ import { useInputMask } from 'react-input-mask';
 
 const MyComponent = () => {
   const { register, handleSubmit } = useForm();
-  const inputProps = useInputMask({ mask: '9999 9999 9999 9999' });
+  const { getInputProps } = useInputMask({ mask: '9999 9999 9999 9999' });
   return (
     <form onSubmit={handleSubmit(data => console.log(data))}>
-      <input {...register('cc')} {...inputProps} />
+      <input {...register('cc')} {...getInputProps()} />
       <button type="submit">Submit</button>
     </form>
   );

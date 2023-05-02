@@ -133,7 +133,7 @@ export const triggerInputChange = (
   inputValue: string
 ) => {
   node.value = inputValue;
-
+  if (typeof document === "undefined") return;
   const e = document.createEvent("HTMLEvents");
   e.initEvent("change", true, false);
   node.dispatchEvent(e);

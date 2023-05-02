@@ -14,14 +14,14 @@ interface UseInputMaskProps {
   placeholderChar?: string;
   charRegex?: RegExp;
   numRegex?: RegExp;
-  value?: string;
+  value?: HTMLInputElement["value"];
   type?: "raw" | "mask";
 }
 export const LETTER_REGEX = /^[a-zA-Z]*$/;
 export const DIGIT_REGEX = /^[0-9]*$/;
 
 export function useInputMask({
-  mask,
+  mask = "",
   placeholderChar = "_",
   type = "raw",
   value,
@@ -47,14 +47,6 @@ export function useInputMask({
   const [rawValue, setRawValue] = useState(defaultRaw);
   const [maskValue, setMaskValue] = useState(defaultMask);
 
-  if (!mask) {
-    return {};
-  }
-  // If rendering on the server, return the mask value
-  if (typeof document === "undefined") {
-    return { value: maskValue };
-  }
-
   const setMaskValues = (
     raw: string,
     input: HTMLInputElement,
@@ -78,7 +70,7 @@ export function useInputMask({
     const value = event.key;
     const input = event.target as HTMLInputElement;
     const currentMaskIndex = rawValue.length;
-    const currentMaskChar = filteredMask![currentMaskIndex];
+    const currentMaskChar = filteredMask[currentMaskIndex];
     // Select whole input if user presses Ctrl+A
     if (event.ctrlKey && event.key.toLowerCase() === "a") {
       event.preventDefault();
@@ -102,7 +94,7 @@ export function useInputMask({
       currentMaskChar,
       charRegex,
       numRegex,
-      filteredMask: filteredMask!,
+      filteredMask,
       rawValue,
     });
 
@@ -113,10 +105,14 @@ export function useInputMask({
     const newValue = rawValue + value;
     setMaskValues(newValue, input, event);
   };
-  const inputProps = {
-    value: maskValue,
-    onKeyDown,
+
+  const getInputProps = () => {
+    if (!mask) return {};
+    return {
+      value: maskValue,
+      onKeyDown,
+    };
   };
 
-  return { ...inputProps };
+  return { getInputProps };
 }

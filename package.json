@@ -1,8 +1,8 @@
 {
   "name": "@code-forge/react-input-mask",
-  "description": "React input mask hook",
+  "description": "React input mask used to mask input fields on the fly.",
   "author": "Alem Tuzlak",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "MIT",
   "keywords": [
     "react",

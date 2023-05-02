@@ -7,8 +7,10 @@ const renderComponent = (
   onChange: () => void = () => {}
 ) => {
   const Component = () => {
-    const inputProps = useInputMask(props);
-    return <input data-testid="input" {...inputProps} onChange={onChange} />;
+    const { getInputProps } = useInputMask(props);
+    return (
+      <input data-testid="input" {...getInputProps()} onChange={onChange} />
+    );
   };
   return render(<Component />);
 };
@@ -16,7 +18,7 @@ const renderComponent = (
 describe("useInputMask", () => {
   it("renders correctly", () => {
     const { result } = renderHook(() => useInputMask({ mask: "AAA-999" }));
-    expect(result.current).toMatchObject({ value: "___-___" });
+    expect(result.current.getInputProps()).toMatchObject({ value: "___-___" });
   });
 
   it("updates letter value on input when valid", () => {
