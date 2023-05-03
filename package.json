@@ -2,7 +2,7 @@
   "name": "@code-forge/react-input-mask",
   "description": "React input mask used to mask input fields on the fly.",
   "author": "Alem Tuzlak",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "license": "MIT",
   "keywords": [
     "react",
@@ -28,6 +28,15 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Code-Forge-Net/react-input-mask.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Code-Forge-Net/react-input-mask/issues"
+  },
+  "homepage": "https://github.com/Code-Forge-Net/react-input-mask#readme",
+  "readme": "https://github.com/Code-Forge-Net/react-input-mask#readme",
   "scripts": {
     "prepublish": "npm run build",
     "dev": "vite --config ./vite.dev.config.ts",
