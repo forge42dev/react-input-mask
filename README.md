@@ -48,7 +48,7 @@ const MyComponent = () => {
 ```
 
 
-In the example above, we've applied a mask to a phone number input field. The mask prop specifies the format of the phone number.
+In the example above, we've applied a mask to fill the word needed to complete the sentence.
 
 You can customize the mask to fit your needs by using a variety of special characters that represent different types of input. 
 

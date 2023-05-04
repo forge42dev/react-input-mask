@@ -2,7 +2,7 @@
   "name": "@code-forge/react-input-mask",
   "description": "React input mask used to mask input fields on the fly.",
   "author": "Alem Tuzlak",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "license": "MIT",
   "keywords": [
     "react",
