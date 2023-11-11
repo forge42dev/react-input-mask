@@ -34,7 +34,7 @@ Using React Input Mask is easy. Simply import the useInputMask hook from the lib
 
 ```jsx 
 import React from 'react';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { getInputProps } = useInputMask({ mask: 'One does not simply walk into AAAAAA' });
@@ -74,7 +74,7 @@ You can customize the mask to fit your needs by using a variety of special chara
 ### Phone Number
 ```jsx
 import React from 'react';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { getInputProps } = useInputMask({ mask: '+(999) 999-9999' });
@@ -87,7 +87,7 @@ const MyComponent = () => {
 ### Social Security Number
 ```jsx
 import React from 'react';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { getInputProps } = useInputMask({ mask: '999-99-9999' });
@@ -100,7 +100,7 @@ const MyComponent = () => {
 ### Credit Card Number
 ```jsx
 import React from 'react';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { getInputProps } = useInputMask({ mask: '9999 9999 9999 9999' });
@@ -113,7 +113,7 @@ const MyComponent = () => {
 ### Handle keyDown before the mask
 ```jsx
 import React from 'react';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { getInputProps } = useInputMask({ mask: '9999 9999 9999 9999' });
@@ -132,7 +132,7 @@ const MyComponent = () => {
 ```jsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useInputMask } from 'react-input-mask';
+import { useInputMask } from '@code-forge/react-input-mask';
 
 const MyComponent = () => {
   const { register, handleSubmit } = useForm();
@@ -160,7 +160,7 @@ If you find a bug, please file an issue on [our issue tracker on GitHub](https:/
 
 ## Contributing
 
-Thank you for considering contributing to react-input-mask! We welcome any contributions, big or small, including bug reports, feature requests, documentation improvements, or code changes.
+Thank you for considering contributing to @code-forge/react-input-mask! We welcome any contributions, big or small, including bug reports, feature requests, documentation improvements, or code changes.
 
 To get started, please fork this repository and make your changes in a new branch. Once you're ready to submit your changes, please open a pull request with a clear description of your changes and any related issues or pull requests.
 
